@@ -19,11 +19,17 @@ const SEARCH_PATIENTS = gql`
       ]
     }) {
       id
+      patient_name
+      patient_age
+      gender
+      contact_number
+      email
+      address
       symptoms
       diagnosis
       lab_results
       age_range
-      gender
+      created_at
     }
   }
 `;
@@ -85,6 +91,10 @@ const Dashboard = () => {
                 <option value="Fever">Fever</option>
                 <option value="Headache">Headache</option>
                 <option value="Cough">Cough</option>
+                <option value="Shortness of Breath">Shortness of Breath</option>
+                <option value="Chest Pain">Chest Pain</option>
+                <option value="Fatigue">Fatigue</option>
+                <option value="Abdominal Pain">Abdominal Pain</option>
               </select>
             </div>
 
@@ -99,6 +109,10 @@ const Dashboard = () => {
                 <option value="Migraine">Migraine</option>
                 <option value="Flu">Flu</option>
                 <option value="Covid">Covid</option>
+                <option value="Bronchitis">Bronchitis</option>
+                <option value="Hypertension">Hypertension</option>
+                <option value="Diabetes">Diabetes</option>
+                <option value="Asthma">Asthma</option>
               </select>
             </div>
 
@@ -156,23 +170,64 @@ const Dashboard = () => {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">Search Results</h3>
-          {loading && <p>Loading...</p>}
+          <h3 className="text-xl font-semibold mb-4 text-[#7fdbda]">Search Results</h3>
+          {loading && <p className="text-[#7fdbda]">Loading...</p>}
           {error && (
             <p className="text-red-500">An error occurred. Please try again.</p>
           )}
           {data?.patient_records && (
             <div className="space-y-4">
-              {data.patient_records.map((record) => (
-                <div key={record.id} className="bg-[#242b45] p-4 rounded">
-                  <p>Symptoms: {record.symptoms}</p>
-                  <p>Diagnosis: {record.diagnosis}</p>
-                  <p>Lab Results: {record.lab_results.join(', ')}</p>
-                  <p>Age Range: {record.age_range}</p>
-                  <p>Gender: {record.gender}</p>
+              {data.patient_records.map((patient) => (
+                <div key={patient.id} className="bg-[#242b45] p-6 rounded-lg shadow-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 border-b border-[#7fdbda] pb-2 mb-4">
+                      <h4 className="text-xl font-semibold text-[#7fdbda]">
+                        {patient.patient_name}
+                      </h4>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Age:</span> {patient.patient_age} years
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Gender:</span> {patient.gender}
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Contact:</span> {patient.contact_number}
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Email:</span> {patient.email}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Symptoms:</span> {patient.symptoms}
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Diagnosis:</span> {patient.diagnosis}
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Lab Results:</span> {patient.lab_results.join(', ')}
+                      </p>
+                      <p className="text-[#7fdbda]">
+                        <span className="font-semibold">Address:</span> {patient.address}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-2 border-t border-[#7fdbda]">
+                    <p className="text-sm text-[#7fdbda] opacity-75">
+                      Patient ID: {patient.id} | Last Updated: {new Date(patient.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
+          )}
+          {data?.patient_records?.length === 0 && (
+            <p className="text-[#7fdbda]">No matching records found.</p>
           )}
         </div>
       </div>
