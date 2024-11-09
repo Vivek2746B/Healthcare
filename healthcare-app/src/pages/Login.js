@@ -1,15 +1,76 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { useLazyQuery, gql } from '@apollo/client';
+
+const GET_USER = gql`
+  query GetUser($firebase_uid: String!) {
+    users(where: { firebase_uid: { _eq: $firebase_uid } }) {
+      id
+      username
+      firebase_uid
+    }
+  }
+`;
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const auth = getAuth();
 
-  const handleSubmit = (e) => {
+  // Use useLazyQuery instead of useQuery
+  const [getUser] = useLazyQuery(GET_USER);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add login logic here
-    console.log('Login attempted with:', email, password);
+    setError('');
+    setLoading(true);
+
+    try {
+      // Attempt to sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUid = userCredential.user.uid;
+
+      // Fetch user data from Hasura
+      const { data } = await getUser({
+        variables: { firebase_uid: firebaseUid }
+      });
+
+      if (data && data.users && data.users.length > 0) {
+        // Store user info in local storage or context
+        localStorage.setItem('user', JSON.stringify(data.users[0]));
+        localStorage.setItem('token', await userCredential.user.getIdToken());
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        setError('User data not found');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(getErrorMessage(error.code));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to get user-friendly error messages
+  const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+      case 'auth/user-not-found':
+        return 'No account found with this email';
+      case 'auth/wrong-password':
+        return 'Incorrect password';
+      case 'auth/invalid-email':
+        return 'Invalid email address';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later';
+      default:
+        return 'An error occurred during login';
+    }
   };
 
   return (
@@ -18,6 +79,15 @@ const Login = () => {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Or{' '}
+          <Link
+            to="/register"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
+            create a new account
+          </Link>
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -59,13 +129,31 @@ const Login = () => {
               </div>
             </div>
 
+            {error && (
+              <div className="text-red-600 text-sm text-center">
+                {error}
+              </div>
+            )}
+
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={loading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  loading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                Sign in
+                {loading ? 'Signing in...' : 'Sign in'}
               </button>
+            </div>
+
+            <div className="text-sm text-center">
+              <Link
+                to="/forgot-password"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Forgot your password?
+              </Link>
             </div>
           </form>
         </div>

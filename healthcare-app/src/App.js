@@ -4,11 +4,12 @@ import Navbar from './components/navbar';
 import Footer from './components/footer';
 import Home from './pages/home';
 import About from './pages/about';
-import Login from './pages/Login';     // Add this import
-import Dashboard from './pages/Dashboard';  // Add this import
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import Register from "./pages/Register"
+import { ApolloWrapper } from './apollo';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAabOmCodKeA3c4ndN6FpVZbl6RiPOiRfU",
@@ -26,21 +27,23 @@ const analytics = getAnalytics(app);
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/login" element={<Login />} />         {/* Add login route */}
-            <Route path="/dashboard" element={<Dashboard />} /> {/* Add dashboard route */}
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <ApolloWrapper>
+      <Router>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </ApolloWrapper>
   );
 }
 

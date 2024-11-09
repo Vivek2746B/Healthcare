@@ -1,5 +1,5 @@
 // src/apollo.js
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, ApolloProvider } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
@@ -15,9 +15,13 @@ const authLink = setContext((_, { headers }) => {
   }
 });
 
-const client = new ApolloClient({
+export const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache()
 });
 
-export default client;
+export const ApolloWrapper = ({ children }) => (
+  <ApolloProvider client={client}>
+    {children}
+  </ApolloProvider>
+);
